@@ -14,6 +14,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView playerOneScore, playerTowScore, playerStatus;
     private Button[] buttons = new Button[9];
     private Button resetGame;
+    private Button nextRound;
     private int playerOneScoreCount, playerTowScoreCount, rountCount;
     boolean activePlayer;
 
@@ -37,6 +38,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         playerTowScore = (TextView) findViewById(R.id.playerTwoScore);
         playerStatus = (TextView) findViewById(R.id.playerStatus);
         resetGame = (Button) findViewById(R.id.resetGame);
+        nextRound = (Button) findViewById(R.id.nextRound);
+
 
         for(int i=0 ;i<buttons.length;i++){
             String buttonID = "btn_" + i;
@@ -49,66 +52,86 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         playerOneScoreCount = 0;
         playerTowScoreCount = 0;
         activePlayer = true;
-
+        playerStatus.setText("Player one (X) make a move");
     }
 
     @Override
     public void onClick(View v) {
-
+        //First we make sure that this btn is empty
         if(!((Button)v).getText().toString().equals(""))
             return;
 
+        // get the pressed btn id
         String buttonID = v.getResources().getResourceEntryName(v.getId());
         int gameStatePointer = Integer.parseInt(buttonID.substring(buttonID.length()-1, buttonID.length()));
 
+        // if it is X who playing now
         if(activePlayer){
-            ((Button) v).setText("X");
-            ((Button) v).setTextColor(Color.parseColor("#FFC34A"));
-            gameState[gameStatePointer] = 0;
+            if(gameState[gameStatePointer] == 2) {
+                ((Button) v).setText("X");
+                ((Button) v).setTextColor(Color.parseColor("#FFC34A"));
+                gameState[gameStatePointer] = 0;
+            }
         }
+        // if it is O who playing now
         else {
-            ((Button) v).setText("O");
-            ((Button) v).setTextColor(Color.parseColor("#70FFEA"));
-            gameState[gameStatePointer] = 1;
+            if(gameState[gameStatePointer] == 2) {
+                ((Button) v).setText("O");
+                ((Button) v).setTextColor(Color.parseColor("#70FFEA"));
+                gameState[gameStatePointer] = 1;
+            }
         }
         rountCount++;
 
-        if(checkWinner()){
+        if(gameState[gameStatePointer] == 3)
+            playAgain();
+
+        else if(checkWinner()){
             if(activePlayer){
                 playerOneScoreCount++;
                 updatePlayerScore();
-                Toast.makeText(this, "Player One Won!", Toast.LENGTH_SHORT).show();
-                playAgain();
+                playerStatus.setText("Player One is Winning!");
+                Block();
             }
             else {
                 playerTowScoreCount++;
                 updatePlayerScore();
-                Toast.makeText(this, "Player Two Won!", Toast.LENGTH_SHORT).show();
-                playAgain();
+                playerStatus.setText("Player Two is Winning!");
+                Block();
             }
         }
+        // if the game over without a winner
         else if(rountCount == 9){
-           playAgain();
-            Toast.makeText(this, "No Winner!", Toast.LENGTH_SHORT).show();
+            playerStatus.setText("No Winner!");
+            Block();
         }
         else {
+            if (activePlayer)
+            {
+                playerStatus.setText("Player two (O) make a move");
+            }
+            else
+            {
+                playerStatus.setText("Player one (X) make a move");
+            }
             activePlayer = !activePlayer;
         }
 
-        if(playerOneScoreCount > playerTowScoreCount)
-            playerStatus.setText("Player One is Winning!");
-        else if(playerTowScoreCount > playerOneScoreCount)
-            playerStatus.setText("Player Two is Winning!");
-        else
-            playerStatus.setText("");
 
+
+        nextRound.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                playAgain();
+            }
+        });
         resetGame.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 playAgain();
                 playerOneScoreCount = 0;
                 playerTowScoreCount = 0;
-                playerStatus.setText("");
+                playerStatus.setText("Player one (X) make a move");
                 updatePlayerScore();
             }
         });
@@ -121,7 +144,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if(gameState[winningPosition[0]] == gameState[winningPosition[1]] &&
                 gameState[winningPosition[1]] == gameState[winningPosition[2]] &&
                 gameState[winningPosition[0]] !=2){
-                    winnerResult = true;
+                buttons[winningPosition[0]].setBackgroundColor(Color.parseColor("green"));
+                buttons[winningPosition[0]].setTextColor(Color.parseColor("black"));
+                buttons[winningPosition[1]].setBackgroundColor(Color.parseColor("green"));
+                buttons[winningPosition[1]].setTextColor(Color.parseColor("black"));
+                buttons[winningPosition[2]].setBackgroundColor(Color.parseColor("green"));
+                buttons[winningPosition[2]].setTextColor(Color.parseColor("black"));
+                winnerResult = true;
             }
         }
         return winnerResult;
@@ -138,6 +167,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         for(int i=0; i<buttons.length; i++){
             gameState[i] = 2;
             buttons[i].setText("");
+            buttons[i].setBackgroundColor(Color.parseColor("#413F43"));
+        }
+        playerStatus.setText("Player one (X) make a move");
+    }
+
+    public void Block(){
+        for(int i=0; i<buttons.length; i++){
+            gameState[i] = 3;
         }
     }
 
